@@ -6,6 +6,8 @@ import shutil
 import smtplib
 import subprocess
 import time
+import traceback
+from pyowm import OWM
 import webbrowser
 import pyjokes
 import pyttsx3
@@ -17,13 +19,13 @@ import winshell
 import wolframalpha
 from urllib.request import urlopen
 from clint.textui import progress
-# from ecapture import ecapture as ec
 from twilio.rest import Client
 
 engine = pyttsx3.init('sapi5')
 voices = engine.getProperty('voices')
 engine.setProperty('voice', voices[1].id)
 assname = 'layla'
+
 
 def speak(audio):
     engine.say(audio)
@@ -83,8 +85,8 @@ def sendEmail(to, content):
     server.starttls()
 
     # Enable low security in gmail
-    server.login('example@gmail.com', 'password')
-    server.sendmail('example@gmail.com', to, content)
+    server.login('gmail@gmail.com', 'password')
+    server.sendmail('gmail@gmail.com', to, content)
     server.close()
 
 
@@ -161,7 +163,7 @@ if __name__ == '__main__':
                 print(e)
                 speak("I am not able to send this email")
 
-        elif 'send a mail' in query: # -
+        elif 'send a mail' in query:  # -
             try:
                 speak("What should I say?")
                 content = takeCommand()
@@ -244,7 +246,7 @@ if __name__ == '__main__':
                                                        0)
             speak("Background changed succesfully")
 
-        elif 'open bluestack' in query:
+        elif 'bluestack' in query:
             appli = r"C:\\ProgramData\\BlueStacks\\Client\\Bluestacks.exe"
             os.startfile(appli)
 
@@ -310,30 +312,37 @@ if __name__ == '__main__':
             speak(file.read(6))
 
         elif "weather" in query:
-            # # Google Open weather website
-            # # to get API of Open weather
-            api_key = "API KEY"
-            base_url = "http://api.openweathermap.org/data/2.5/forecast?"
+            speak("Say the city name")
             city_name = takeCommand()
-            complete_url = base_url + "id=524901&appid=" + api_key
-            response = requests.get(complete_url)
-            x = response.json()
-            print(x)
-            exit()
-            if x["cod"] != "404":
-                y = x['weather'][0]['main']
-                current_temperature = y["temp"]
-                current_pressure = y["pressure"]
-                current_humidiy = y["humidity"]
-                z = x["weather"]
-                weather_description = z[0]["description"]
-                print(" Temperature (in kelvin unit) = " + str(
-                    current_temperature) + "\n atmospheric pressure (in hPa unit) =" + str(
-                    current_pressure) + "\n humidity (in percentage) = " + str(
-                    current_humidiy) + "\n description = " + str(weather_description))
+            try:
+                weather_api_key = "c9502546f2c53aba2455842ea9565f9f"
+                open_weather_map = OWM(weather_api_key)
 
-            else:
-                speak(" City Not Found ")
+                # запрос данных о текущем состоянии погоды
+                weather_manager = open_weather_map.weather_manager()
+                observation = weather_manager.weather_at_place(city_name)
+                weather = observation.weather
+
+                # разбивание данных на части для удобства работы с ними
+                status = weather.detailed_status
+                temperature = weather.temperature('celsius')["temp"]
+                wind_speed = weather.wind()["speed"]
+                pressure = int(weather.pressure["press"] / 1.333)  # переведено из гПА в мм рт.ст.
+
+                # вывод логов
+                print("Weather in " + city_name +
+                      ":\n * Status: " + status +
+                      "\n * Wind speed (m/sec): " + str(wind_speed) +
+                      "\n * Temperature (Celsius): " + str(temperature) +
+                      "\n * Pressure (mm Hg): " + str(pressure), "yellow")
+
+                speak(f"It is {status} in {city_name}")
+                speak(f"The temperature is {temperature} degrees Celsius")
+                speak(f"The wind speed is {str(wind_speed)} meters per second")
+                speak(f"The pressure is {pressure} mm Hg")
+
+            except:
+                speak("I don't find a city")
 
         elif "send message " in query:
             # You need to create an account on Twilio to use this service
@@ -382,7 +391,7 @@ if __name__ == '__main__':
 
         elif "" in query:
             print(query)
-            speak("I can not find the command")
+            print("I can not find the command")
 
         elif 'exit' in query:
             speak("Thanks for giving me your time")
