@@ -83,8 +83,8 @@ def sendEmail(to, content):
     server.starttls()
 
     # Enable low security in gmail
-    server.login('sergrigoryan98@gmail.com', '13579@ser8642')
-    server.sendmail('sergrigoryan98@gmail.com', to, content)
+    server.login('example@gmail.com', 'password')
+    server.sendmail('example@gmail.com', to, content)
     server.close()
 
 
@@ -312,7 +312,7 @@ if __name__ == '__main__':
         elif "weather" in query:
             # # Google Open weather website
             # # to get API of Open weather
-            api_key = "b1b15e88fa797225412429c1c50c122a1"
+            api_key = "API KEY"
             base_url = "http://api.openweathermap.org/data/2.5/forecast?"
             city_name = takeCommand()
             complete_url = base_url + "id=524901&appid=" + api_key
